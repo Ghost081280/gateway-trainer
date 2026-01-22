@@ -7,7 +7,7 @@
 
 **The first AI-powered, voice-guided remote viewing trainer based on declassified CIA protocols.**
 
-Train your consciousness using the same techniques explored in the CIA's Gateway Process and Stargate Project. Features real-time binaural beat generation and an AI guide that speaks to you through your session—just like the human monitors did at Fort Meade.
+Train your consciousness using the same techniques explored in the CIA's Gateway Process and Stargate Project. Features real-time binaural beat generation and an AI guide that speaks to you through your session - just like the human monitors did at Fort Meade.
 
 ---
 
