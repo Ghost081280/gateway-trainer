@@ -200,6 +200,10 @@ class GatewayApp {
     document.getElementById('btn-close-settings')?.addEventListener('click', () => this.hideModal('settings'));
     document.getElementById('btn-clear-data')?.addEventListener('click', () => this.clearData());
     
+    // Journals
+    document.getElementById('btn-view-journals')?.addEventListener('click', () => this.showJournals());
+    document.getElementById('btn-close-journals')?.addEventListener('click', () => this.hideModal('journals'));
+    
     // Settings inputs
     document.getElementById('setting-volume')?.addEventListener('input', (e) => {
       const value = parseInt(e.target.value);
@@ -816,6 +820,53 @@ class GatewayApp {
       this.hideModal('settings');
       this.updateUserStats();
     }
+  }
+  
+  // Show past journals
+  showJournals() {
+    const journals = sessionManager.getJournalEntries();
+    const listEl = document.getElementById('journals-list');
+    
+    if (!listEl) return;
+    
+    if (journals.length === 0) {
+      listEl.innerHTML = '<p class="no-journals">No journal entries yet. Complete an Exploration session and save your experience!</p>';
+    } else {
+      // Sort by date, newest first
+      const sorted = [...journals].reverse();
+      
+      listEl.innerHTML = sorted.map(journal => {
+        const date = new Date(journal.date);
+        const dateStr = date.toLocaleDateString('en-US', { 
+          weekday: 'short', 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        
+        return `
+          <div class="journal-entry-card">
+            <div class="journal-entry-header">
+              <span class="journal-entry-date">${dateStr}</span>
+              <span class="journal-entry-focus">Focus ${journal.focusLevel}</span>
+            </div>
+            <div class="journal-entry-text">${this.escapeHtml(journal.entry)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    this.hideModal('settings');
+    this.showModal('journals');
+  }
+  
+  // Escape HTML to prevent XSS
+  escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
   
   // Update user stats display
