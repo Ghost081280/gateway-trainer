@@ -8,6 +8,7 @@ class VoiceOutput {
     this.audioQueue = [];
     this.isPlaying = false;
     this.currentSource = null;
+    this.currentAudioElement = null; // Track HTML5 audio element
     this.audioContext = null;
     this.gainNode = null;
     this.enabled = true;
@@ -16,6 +17,10 @@ class VoiceOutput {
     
     // Track unlock state
     this.audioUnlocked = false;
+    
+    // Track if we're in the middle of a speak operation
+    this.speakingPromise = null;
+    this.abortController = null;
     
     // Bind methods
     this._unlockAudio = this._unlockAudio.bind(this);
@@ -101,6 +106,42 @@ class VoiceOutput {
     }
   }
   
+  // Stop any currently playing speech immediately
+  stopCurrentSpeech() {
+    console.log('Stopping current speech...');
+    
+    // Stop Web Audio source
+    if (this.currentSource) {
+      try {
+        this.currentSource.stop();
+        this.currentSource.disconnect();
+      } catch (e) {
+        // Already stopped
+      }
+      this.currentSource = null;
+    }
+    
+    // Stop HTML5 Audio element
+    if (this.currentAudioElement) {
+      try {
+        this.currentAudioElement.pause();
+        this.currentAudioElement.currentTime = 0;
+        this.currentAudioElement.src = '';
+      } catch (e) {
+        // Already stopped
+      }
+      this.currentAudioElement = null;
+    }
+    
+    // Abort any pending fetch
+    if (this.abortController) {
+      this.abortController.abort();
+      this.abortController = null;
+    }
+    
+    this.isPlaying = false;
+  }
+  
   // Speak text using OpenAI TTS via Cloudflare Worker
   async speak(text) {
     if (!this.enabled || !CONFIG.PREMIUM.voiceOutput) {
@@ -114,12 +155,18 @@ class VoiceOutput {
     
     console.log('TTS request for:', text.substring(0, 50) + '...');
     
+    // CRITICAL: Stop any existing speech before starting new
+    this.stopCurrentSpeech();
+    
     // Ensure audio is ready
     const unlocked = await this._unlockAudio();
     if (!unlocked) {
       console.error('Could not unlock audio');
       return;
     }
+    
+    // Create new abort controller for this request
+    this.abortController = new AbortController();
     
     try {
       // Notify that speaking is starting
@@ -135,7 +182,8 @@ class VoiceOutput {
         body: JSON.stringify({
           text: text,
           speed: CONFIG.VOICE.speed
-        })
+        }),
+        signal: this.abortController.signal
       });
       
       console.log('TTS response status:', response.status);
@@ -215,6 +263,12 @@ class VoiceOutput {
       });
       
     } catch (error) {
+      // Check if this was an abort
+      if (error.name === 'AbortError') {
+        console.log('TTS request was aborted');
+        return;
+      }
+      
       console.error('Voice output error:', error);
       
       if (this.onSpeakingEnd) {
@@ -237,6 +291,7 @@ class VoiceOutput {
         const url = URL.createObjectURL(blob);
         
         const audio = new Audio();
+        this.currentAudioElement = audio; // Track for cancellation
         audio.preload = 'auto';
         audio.setAttribute('playsinline', '');
         audio.setAttribute('webkit-playsinline', '');
@@ -251,11 +306,13 @@ class VoiceOutput {
         
         audio.onended = () => {
           console.log('HTML5 Audio playback completed');
+          this.currentAudioElement = null;
           this._cleanup(originalVolume, url, resolve);
         };
         
         audio.onerror = (e) => {
           console.error('HTML5 Audio error:', e);
+          this.currentAudioElement = null;
           this._cleanup(originalVolume, url, resolve);
         };
         
@@ -276,6 +333,7 @@ class VoiceOutput {
       URL.revokeObjectURL(url);
     }
     this.isPlaying = false;
+    this.currentAudioElement = null;
     binauralBeats.setVolume(originalVolume);
     if (this.onSpeakingEnd) {
       this.onSpeakingEnd();
@@ -291,21 +349,9 @@ class VoiceOutput {
     }
   }
   
-  // Stop current playback
+  // Stop current playback (alias for stopCurrentSpeech)
   stop() {
-    if (this.currentSource) {
-      try {
-        this.currentSource.stop();
-      } catch (e) {
-        // Already stopped
-      }
-      this.currentSource = null;
-    }
-    this.isPlaying = false;
-    
-    if (this.onSpeakingEnd) {
-      this.onSpeakingEnd();
-    }
+    this.stopCurrentSpeech();
   }
   
   // Enable/disable voice output
