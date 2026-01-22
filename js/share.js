@@ -15,7 +15,7 @@ Day #${sessionManager.userData.totalSessions} | Streak: ${sessionResult.streak} 
 AI-guided remote viewing trainer
 Based on declassified CIA research
 
-https://github.com/yourusername/gateway-trainer`;
+https://ghost081280.github.io/gateway-trainer`;
 
   const encodedText = encodeURIComponent(text);
   const url = `https://twitter.com/intent/tweet?text=${encodedText}`;
