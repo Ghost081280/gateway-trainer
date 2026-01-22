@@ -538,8 +538,30 @@
             </select>
           </div>
           <div class="setting-group">
+            <label class="setting-label">Journal History</label>
+            <button id="btn-view-journals" class="btn-secondary" style="width: 100%;">View Past Journals</button>
+          </div>
+
+          <div class="setting-group">
             <button id="btn-clear-data" class="btn-text btn-danger">Clear All Data</button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JOURNALS MODAL -->
+    <div id="modal-journals" class="modal">
+      <div class="modal-content modal-journals-content">
+        <div class="modal-header">
+          <h2>Past Journals</h2>
+          <button id="btn-close-journals" class="btn-icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        <div class="journals-list" id="journals-list">
+          <p class="no-journals">No journal entries yet. Complete an Exploration session and save your experience!</p>
         </div>
       </div>
     </div>
