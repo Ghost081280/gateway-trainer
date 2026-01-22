@@ -366,6 +366,7 @@ button {
 .landing-footer {
   text-align: center;
   padding: var(--spacing-lg) 0;
+  margin-top: var(--spacing-xl);
 }
 
 .headphone-reminder {
@@ -376,6 +377,45 @@ button {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
+}
+
+.footer-divider {
+  width: 60px;
+  height: 1px;
+  background: var(--border-color);
+  margin: var(--spacing-lg) auto;
+}
+
+.github-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px solid var(--border-color);
+  transition: all var(--transition-normal);
+  margin-bottom: var(--spacing-md);
+}
+
+.github-link:hover {
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.github-link svg {
+  flex-shrink: 0;
+}
+
+.footer-credit {
+  color: var(--text-secondary);
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  opacity: 0.6;
+  margin-top: var(--spacing-md);
 }
 
 /* =============================================
@@ -1306,6 +1346,11 @@ button {
   
   .exploration-timer {
     font-size: 2rem;
+  }
+  
+  .github-link {
+    font-size: 0.75rem;
+    padding: var(--spacing-sm) var(--spacing-md);
   }
 }
 
