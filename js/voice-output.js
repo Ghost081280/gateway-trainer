@@ -11,6 +11,69 @@ class VoiceOutput {
     this.enabled = true;
     this.onSpeakingStart = null;
     this.onSpeakingEnd = null;
+    
+    // Mobile audio unlock state
+    this.audioUnlocked = false;
+    this.audioContext = null;
+    
+    // Bind the unlock method so we can remove the listener later
+    this._unlockAudio = this._unlockAudio.bind(this);
+    
+    // Setup mobile audio unlock on first user interaction
+    this._setupMobileUnlock();
+  }
+  
+  // Setup listeners to unlock audio on mobile
+  _setupMobileUnlock() {
+    const events = ['touchstart', 'touchend', 'click', 'keydown'];
+    events.forEach(event => {
+      document.addEventListener(event, this._unlockAudio, { once: false, passive: true });
+    });
+  }
+  
+  // Unlock audio context for mobile browsers
+  async _unlockAudio() {
+    if (this.audioUnlocked) return;
+    
+    try {
+      // Create AudioContext if needed (for iOS Safari)
+      if (!this.audioContext) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) {
+          this.audioContext = new AudioContext();
+        }
+      }
+      
+      // Resume audio context if suspended
+      if (this.audioContext && this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
+      
+      // Create and play a silent audio to unlock
+      const silentAudio = new Audio();
+      silentAudio.src = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRwmHAAAAAAD/+xBkAA/wAABpAAAACAAADSAAAAEAAAGkAAAAIAAANIAAAARMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==';
+      silentAudio.volume = 0.01;
+      
+      const playPromise = silentAudio.play();
+      if (playPromise !== undefined) {
+        await playPromise;
+        silentAudio.pause();
+        silentAudio.remove();
+      }
+      
+      this.audioUnlocked = true;
+      console.log('Audio unlocked for mobile playback');
+      
+      // Remove listeners once unlocked
+      const events = ['touchstart', 'touchend', 'click', 'keydown'];
+      events.forEach(event => {
+        document.removeEventListener(event, this._unlockAudio);
+      });
+      
+    } catch (error) {
+      // Silent fail - will try again on next interaction
+      console.log('Audio unlock pending...');
+    }
   }
   
   // Speak text using OpenAI TTS via Cloudflare Worker
@@ -22,6 +85,11 @@ class VoiceOutput {
     
     if (!text || text.trim() === '') {
       return;
+    }
+    
+    // Ensure audio is unlocked on mobile
+    if (!this.audioUnlocked) {
+      await this._unlockAudio();
     }
     
     try {
@@ -51,66 +119,68 @@ class VoiceOutput {
       const audioUrl = URL.createObjectURL(audioBlob);
       
       return new Promise((resolve) => {
-        this.currentAudio = new Audio(audioUrl);
-        this.isPlaying = true;
+        this.currentAudio = new Audio();
+        
+        // Set properties before setting src (important for mobile)
+        this.currentAudio.preload = 'auto';
+        this.currentAudio.playsinline = true;
+        this.currentAudio.setAttribute('playsinline', '');
+        this.currentAudio.setAttribute('webkit-playsinline', '');
+        
+        // Store original volume for restoration
+        const originalVolume = binauralBeats.getVolume();
+        
+        // Setup event handlers before setting src
+        this.currentAudio.oncanplaythrough = () => {
+          // Lower binaural beat volume while speaking
+          binauralBeats.setVolume(originalVolume * 0.3);
+          this.isPlaying = true;
+          
+          // Play with promise handling for mobile
+          const playPromise = this.currentAudio.play();
+          
+          if (playPromise !== undefined) {
+            playPromise
+              .then(() => {
+                console.log('Audio playback started');
+              })
+              .catch((error) => {
+                console.warn('Audio play failed:', error);
+                this._handlePlaybackError(originalVolume, audioUrl, resolve);
+              });
+          }
+        };
         
         this.currentAudio.onended = () => {
-          URL.revokeObjectURL(audioUrl);
-          this.currentAudio = null;
-          this.isPlaying = false;
-          
-          // Notify that speaking ended
-          if (this.onSpeakingEnd) {
-            this.onSpeakingEnd();
-          }
-          
-          resolve();
+          this._cleanupAudio(originalVolume, audioUrl, resolve);
         };
         
         this.currentAudio.onerror = (error) => {
-          console.warn('Audio playback error:', error);
-          URL.revokeObjectURL(audioUrl);
-          this.currentAudio = null;
-          this.isPlaying = false;
-          
-          if (this.onSpeakingEnd) {
-            this.onSpeakingEnd();
-          }
-          
-          resolve();
+          console.warn('Audio error:', error);
+          this._handlePlaybackError(originalVolume, audioUrl, resolve);
         };
         
-        // Lower binaural beat volume while speaking
-        const originalVolume = binauralBeats.getVolume();
-        binauralBeats.setVolume(originalVolume * 0.3);
-        
-        this.currentAudio.onended = () => {
-          URL.revokeObjectURL(audioUrl);
-          this.currentAudio = null;
-          this.isPlaying = false;
-          
-          // Restore binaural beat volume
-          binauralBeats.setVolume(originalVolume);
-          
-          if (this.onSpeakingEnd) {
-            this.onSpeakingEnd();
-          }
-          
-          resolve();
+        // Handle stalled/stuck audio (common on mobile)
+        this.currentAudio.onstalled = () => {
+          console.warn('Audio stalled, attempting recovery...');
         };
         
-        this.currentAudio.play().catch((error) => {
-          console.warn('Failed to play audio:', error);
-          this.isPlaying = false;
-          binauralBeats.setVolume(originalVolume);
-          
-          if (this.onSpeakingEnd) {
-            this.onSpeakingEnd();
+        // Set source last (after all handlers are attached)
+        this.currentAudio.src = audioUrl;
+        this.currentAudio.load();
+        
+        // Fallback timeout in case audio never plays (mobile issue)
+        setTimeout(() => {
+          if (this.isPlaying && this.currentAudio) {
+            // Check if audio is actually progressing
+            if (this.currentAudio.currentTime === 0 && !this.currentAudio.paused) {
+              console.warn('Audio not progressing, forcing cleanup');
+              this._handlePlaybackError(originalVolume, audioUrl, resolve);
+            }
           }
-          
-          resolve();
-        });
+        }, 10000); // 10 second timeout
       });
+      
     } catch (error) {
       console.warn('Voice output error:', error);
       
@@ -118,6 +188,38 @@ class VoiceOutput {
         this.onSpeakingEnd();
       }
     }
+  }
+  
+  // Clean up after successful playback
+  _cleanupAudio(originalVolume, audioUrl, resolve) {
+    URL.revokeObjectURL(audioUrl);
+    this.currentAudio = null;
+    this.isPlaying = false;
+    
+    // Restore binaural beat volume
+    binauralBeats.setVolume(originalVolume);
+    
+    if (this.onSpeakingEnd) {
+      this.onSpeakingEnd();
+    }
+    
+    resolve();
+  }
+  
+  // Handle playback errors
+  _handlePlaybackError(originalVolume, audioUrl, resolve) {
+    URL.revokeObjectURL(audioUrl);
+    this.currentAudio = null;
+    this.isPlaying = false;
+    
+    // Restore binaural beat volume
+    binauralBeats.setVolume(originalVolume);
+    
+    if (this.onSpeakingEnd) {
+      this.onSpeakingEnd();
+    }
+    
+    resolve();
   }
   
   // Queue multiple texts to speak in sequence
@@ -133,6 +235,7 @@ class VoiceOutput {
   stop() {
     if (this.currentAudio) {
       this.currentAudio.pause();
+      this.currentAudio.src = '';
       this.currentAudio = null;
       this.isPlaying = false;
       
@@ -158,6 +261,17 @@ class VoiceOutput {
   // Helper delay function
   delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+  
+  // Check if audio is likely to work (for UI feedback)
+  isAudioSupported() {
+    return !!(window.Audio && (window.AudioContext || window.webkitAudioContext));
+  }
+  
+  // Manual unlock trigger (can be called from a button if needed)
+  async manualUnlock() {
+    await this._unlockAudio();
+    return this.audioUnlocked;
   }
 }
 
