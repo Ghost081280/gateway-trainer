@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gateway Trainer - AI-Guided Remote Viewing</title>
+  <meta name="description" content="The first AI-powered, voice-guided remote viewing trainer based on declassified CIA protocols.">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+</head>
+<body>
+  <div id="app">
+    
+    <!-- ========== LANDING SCREEN ========== -->
+    <section id="screen-landing" class="screen active">
+      <header class="landing-header">
+        <div class="classification-stamp">DECLASSIFIED</div>
+        <h1 class="app-title">GATEWAY TRAINER</h1>
+        <p class="app-subtitle">AI-Guided Consciousness Exploration & Remote Viewing Training</p>
+        <p class="app-tagline">Based on declassified CIA/DIA research (1972-1995)</p>
+        <div class="voice-badge">
+          <svg class="icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+          </svg>
+          Voice-Guided Sessions
+        </div>
+      </header>
+
+      <!-- User Stats (shown if returning user) -->
+      <div id="user-stats" class="user-stats hidden">
+        <div class="stat">
+          <span class="stat-value" id="stat-sessions">0</span>
+          <span class="stat-label">Sessions</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="stat-accuracy">0%</span>
+          <span class="stat-label">Accuracy</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="stat-streak">0</span>
+          <span class="stat-label">Day Streak</span>
+        </div>
+      </div>
+
+      <!-- Mode Selection Cards -->
+      <div class="mode-cards">
+        <div class="mode-card" data-mode="training">
+          <div class="mode-icon">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <circle cx="12" cy="12" r="6"/>
+              <circle cx="12" cy="12" r="2"/>
+              <line x1="12" y1="2" x2="12" y2="6"/>
+              <line x1="12" y1="18" x2="12" y2="22"/>
+              <line x1="2" y1="12" x2="6" y2="12"/>
+              <line x1="18" y1="12" x2="22" y2="12"/>
+            </svg>
+          </div>
+          <h2 class="mode-title">Training</h2>
+          <p class="mode-description">Remote viewing exercises with AI guidance. See targets, describe impressions, get scored.</p>
+          <span class="mode-tag">Recommended</span>
+        </div>
+
+        <div class="mode-card" data-mode="exploration">
+          <div class="mode-icon">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 2a10 10 0 0 0 0 20"/>
+              <path d="M12 2c-2.5 2.5-4 6-4 10s1.5 7.5 4 10"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+            </svg>
+          </div>
+          <h2 class="mode-title">Exploration</h2>
+          <p class="mode-description">Pure consciousness exploration. Deep states without targets. Optional journaling.</p>
+        </div>
+
+        <div class="mode-card" data-mode="quick">
+          <div class="mode-icon">
+            <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+          </div>
+          <h2 class="mode-title">Quick Session</h2>
+          <p class="mode-description">Simple binaural beats. No guidance, just tones. For experienced users.</p>
+        </div>
+      </div>
+
+      <!-- Settings Button -->
+      <button id="btn-settings" class="btn-icon" aria-label="Settings">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+
+      <!-- Footer -->
+      <footer class="landing-footer">
+        <div class="headphone-reminder">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+            <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3v5z"/>
+            <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3v5z"/>
+          </svg>
+          Headphones Required
+        </div>
+      </footer>
+    </section>
+
+    <!-- ========== TRAINING SETUP SCREEN ========== -->
+    <section id="screen-training-setup" class="screen">
+      <header class="screen-header">
+        <button class="btn-back" data-target="landing">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <h1>Training Setup</h1>
+      </header>
+
+      <div class="setup-form">
+        <div class="form-group">
+          <label>Session Duration</label>
+          <div class="option-buttons" data-setting="duration">
+            <button class="option-btn" data-value="5">5 min</button>
+            <button class="option-btn active" data-value="10">10 min</button>
+            <button class="option-btn" data-value="15">15 min</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Number of Targets</label>
+          <div class="option-buttons" data-setting="targets">
+            <button class="option-btn" data-value="3">3</button>
+            <button class="option-btn active" data-value="5">5</button>
+            <button class="option-btn" data-value="7">7</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Focus Level</label>
+          <div class="option-buttons" data-setting="focus">
+            <button class="option-btn active" data-value="10">Focus 10</button>
+            <button class="option-btn" data-value="12">Focus 12</button>
+            <button class="option-btn" data-value="15">Focus 15</button>
+            <button class="option-btn" data-value="21">Focus 21</button>
+          </div>
+          <p class="focus-description" id="focus-description">Mind Awake, Body Asleep</p>
+        </div>
+
+        <div class="form-group">
+          <label class="toggle-label">
+            <span>Voice Mode (Two-Way)</span>
+            <div class="toggle-switch">
+              <input type="checkbox" id="toggle-voice" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+          <p class="setting-hint">Speak your impressions naturally. AI responds with voice.</p>
+        </div>
+
+        <button id="btn-start-training" class="btn-primary btn-large">
+          Begin Session
+        </button>
+      </div>
+    </section>
+
+    <!-- ========== TRAINING SESSION SCREEN ========== -->
+    <section id="screen-training-session" class="screen">
+      <header class="session-header">
+        <div class="session-info">
+          <span id="session-focus">Focus 10</span>
+          <span class="separator">|</span>
+          <span id="session-progress">Target 1/5</span>
+          <span class="separator">|</span>
+          <span class="headphones-indicator active">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+              <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3v5z"/>
+              <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3v5z"/>
+            </svg>
+            Active
+          </span>
+        </div>
+        <div class="session-timer" id="session-timer">10:00</div>
+      </header>
+
+      <!-- Target Envelope -->
+      <div class="envelope-container">
+        <div class="envelope" id="envelope">
+          <div class="envelope-front">
+            <div class="classified-stamp">CLASSIFIED</div>
+            <div class="envelope-label" id="envelope-label">TARGET 1 OF 5</div>
+          </div>
+          <div class="envelope-back">
+            <img id="target-image" src="" alt="Target">
+            <p class="target-name" id="target-name"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Monitor -->
+      <div class="monitor-box">
+        <div class="monitor-header">
+          <svg class="icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+          </svg>
+          <span>MONITOR</span>
+          <div class="speaking-indicator" id="speaking-indicator"></div>
+        </div>
+        <p class="monitor-text" id="monitor-text">Initializing session...</p>
+      </div>
+
+      <!-- Impressions List -->
+      <div class="impressions-box">
+        <div class="impressions-header">YOUR IMPRESSIONS</div>
+        <ul class="impressions-list" id="impressions-list"></ul>
+        <p class="interim-text" id="interim-text"></p>
+      </div>
+
+      <!-- Voice/Text Input -->
+      <div class="input-area">
+        <!-- Voice Mode -->
+        <div class="voice-input-area" id="voice-input-area">
+          <div class="listening-status" id="listening-status">
+            <svg class="icon icon-mic" viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+            <span class="status-text" id="status-text">LISTENING...</span>
+            <div class="pulse-dots">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+          <p class="voice-hint">Just speak naturally</p>
+        </div>
+
+        <!-- Text Mode -->
+        <div class="text-input-area hidden" id="text-input-area">
+          <input type="text" id="impression-input" placeholder="Type your impression..." autocomplete="off">
+          <button id="btn-send-impression" class="btn-send">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Session Controls -->
+      <div class="session-controls">
+        <button id="btn-reveal" class="btn-secondary">Reveal Target</button>
+        <button id="btn-end-session" class="btn-text">End Session</button>
+      </div>
+    </section>
+
+    <!-- ========== REVEAL SCREEN ========== -->
+    <section id="screen-reveal" class="screen">
+      <header class="screen-header">
+        <h1>TARGET REVEALED</h1>
+      </header>
+
+      <div class="reveal-content">
+        <div class="revealed-image-container">
+          <img id="revealed-image" src="" alt="Revealed Target">
+          <p class="revealed-name" id="revealed-name"></p>
+        </div>
+
+        <div class="score-display">
+          <div class="score-label">MATCH SCORE</div>
+          <div class="score-bar">
+            <div class="score-fill" id="score-fill"></div>
+          </div>
+          <div class="score-value" id="score-value">0%</div>
+        </div>
+
+        <div class="match-breakdown" id="match-breakdown">
+          <!-- Filled dynamically -->
+        </div>
+
+        <div class="monitor-box">
+          <div class="monitor-header">
+            <svg class="icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            </svg>
+            <span>MONITOR FEEDBACK</span>
+          </div>
+          <p class="monitor-text" id="reveal-feedback"></p>
+        </div>
+      </div>
+
+      <div class="reveal-controls">
+        <button id="btn-next-target" class="btn-primary">Next Target</button>
+        <button id="btn-end-from-reveal" class="btn-text">End Session</button>
+      </div>
+    </section>
+
+    <!-- ========== SESSION SUMMARY SCREEN ========== -->
+    <section id="screen-summary" class="screen">
+      <header class="screen-header">
+        <div class="classification-stamp">SESSION COMPLETE</div>
+        <h1>Mission Debrief</h1>
+      </header>
+
+      <div class="summary-content">
+        <div class="summary-stats">
+          <div class="summary-stat">
+            <span class="summary-value" id="summary-targets">5</span>
+            <span class="summary-label">Targets</span>
+          </div>
+          <div class="summary-stat">
+            <span class="summary-value" id="summary-accuracy">75%</span>
+            <span class="summary-label">Avg Accuracy</span>
+          </div>
+          <div class="summary-stat">
+            <span class="summary-value" id="summary-best">92%</span>
+            <span class="summary-label">Best Score</span>
+          </div>
+          <div class="summary-stat">
+            <span class="summary-value" id="summary-streak">3</span>
+            <span class="summary-label">Day Streak</span>
+          </div>
+        </div>
+
+        <div class="monitor-box">
+          <div class="monitor-header">
+            <svg class="icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+            </svg>
+            <span>SESSION ANALYSIS</span>
+          </div>
+          <p class="monitor-text" id="summary-feedback"></p>
+        </div>
+
+        <div class="summary-actions">
+          <button id="btn-share" class="btn-secondary">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+            </svg>
+            Share to X
+          </button>
+          <button id="btn-new-session" class="btn-primary">New Session</button>
+          <button id="btn-home" class="btn-text">Return Home</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== EXPLORATION SETUP SCREEN ========== -->
+    <section id="screen-exploration-setup" class="screen">
+      <header class="screen-header">
+        <button class="btn-back" data-target="landing">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <h1>Exploration Setup</h1>
+      </header>
+
+      <div class="setup-form">
+        <div class="form-group">
+          <label>Focus Level</label>
+          <div class="focus-cards">
+            <div class="focus-card active" data-value="10">
+              <span class="focus-number">10</span>
+              <span class="focus-name">Mind Awake, Body Asleep</span>
+            </div>
+            <div class="focus-card" data-value="12">
+              <span class="focus-number">12</span>
+              <span class="focus-name">Expanded Awareness</span>
+            </div>
+            <div class="focus-card" data-value="15">
+              <span class="focus-number">15</span>
+              <span class="focus-name">No Time</span>
+            </div>
+            <div class="focus-card" data-value="21">
+              <span class="focus-number">21</span>
+              <span class="focus-name">The Bridge</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Duration</label>
+          <div class="option-buttons" data-setting="exploration-duration">
+            <button class="option-btn" data-value="10">10 min</button>
+            <button class="option-btn active" data-value="20">20 min</button>
+            <button class="option-btn" data-value="30">30 min</button>
+            <button class="option-btn" data-value="60">60 min</button>
+          </div>
+        </div>
+
+        <button id="btn-start-exploration" class="btn-primary btn-large">
+          Begin Exploration
+        </button>
+      </div>
+    </section>
+
+    <!-- ========== EXPLORATION SESSION SCREEN ========== -->
+    <section id="screen-exploration-session" class="screen">
+      <div class="exploration-display">
+        <div class="focus-indicator">
+          <span class="focus-label">FOCUS</span>
+          <span class="focus-level" id="exploration-focus-level">10</span>
+        </div>
+        <div class="exploration-timer" id="exploration-timer">20:00</div>
+        <div class="frequency-display">
+          <span id="exploration-frequency">10 Hz</span>
+          <span class="frequency-label">Alpha</span>
+        </div>
+      </div>
+
+      <div class="exploration-controls">
+        <button id="btn-exploration-pause" class="btn-round">
+          <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="6" y="4" width="4" height="16"/>
+            <rect x="14" y="4" width="4" height="16"/>
+          </svg>
+        </button>
+        <button id="btn-exploration-stop" class="btn-text">End Session</button>
+      </div>
+    </section>
+
+    <!-- ========== EXPLORATION JOURNAL SCREEN ========== -->
+    <section id="screen-journal" class="screen">
+      <header class="screen-header">
+        <h1>Session Journal</h1>
+        <p class="screen-subtitle">Record your experiences (optional)</p>
+      </header>
+
+      <div class="journal-content">
+        <textarea id="journal-entry" placeholder="What did you experience? Any images, feelings, or insights..."></textarea>
+        
+        <div class="journal-actions">
+          <button id="btn-save-journal" class="btn-primary">Save & Get Insights</button>
+          <button id="btn-skip-journal" class="btn-text">Skip</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== QUICK SESSION SETUP SCREEN ========== -->
+    <section id="screen-quick-setup" class="screen">
+      <header class="screen-header">
+        <button class="btn-back" data-target="landing">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <h1>Quick Session</h1>
+      </header>
+
+      <div class="setup-form">
+        <div class="form-group">
+          <label>Focus Level</label>
+          <select id="quick-focus-select" class="select-input">
+            <option value="10">Focus 10 - Mind Awake, Body Asleep (10 Hz)</option>
+            <option value="12">Focus 12 - Expanded Awareness (7 Hz)</option>
+            <option value="15">Focus 15 - No Time (5 Hz)</option>
+            <option value="21">Focus 21 - The Bridge (4 Hz)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Duration</label>
+          <div class="option-buttons" data-setting="quick-duration">
+            <button class="option-btn" data-value="5">5 min</button>
+            <button class="option-btn active" data-value="10">10 min</button>
+            <button class="option-btn" data-value="15">15 min</button>
+            <button class="option-btn" data-value="30">30 min</button>
+          </div>
+        </div>
+
+        <button id="btn-start-quick" class="btn-primary btn-large">
+          <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+          Start
+        </button>
+      </div>
+    </section>
+
+    <!-- ========== QUICK SESSION SCREEN ========== -->
+    <section id="screen-quick-session" class="screen">
+      <div class="quick-display">
+        <div class="quick-focus">
+          <span class="focus-label">FOCUS</span>
+          <span class="focus-level" id="quick-focus-level">10</span>
+        </div>
+        <div class="quick-timer" id="quick-timer">10:00</div>
+      </div>
+
+      <div class="quick-controls">
+        <button id="btn-quick-pause" class="btn-round btn-large">
+          <svg id="quick-pause-icon" viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="6" y="4" width="4" height="16"/>
+            <rect x="14" y="4" width="4" height="16"/>
+          </svg>
+        </button>
+        <button id="btn-quick-stop" class="btn-text">End</button>
+      </div>
+    </section>
+
+    <!-- ========== HEADPHONE WARNING MODAL ========== -->
+    <div id="modal-headphones" class="modal">
+      <div class="modal-content">
+        <div class="modal-icon warning">
+          <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 18v-6a9 9 0 0 1 18 0v6"/>
+            <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3v5z"/>
+            <path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3v5z"/>
+          </svg>
+        </div>
+        <h2>Headphones Required</h2>
+        <p>Binaural beats only work when each ear receives a different frequency. Please connect headphones before continuing.</p>
+        <div class="modal-actions">
+          <button id="btn-headphones-confirm" class="btn-primary">I Have Headphones Connected</button>
+          <button id="btn-headphones-cancel" class="btn-text">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== SETTINGS MODAL ========== -->
+    <div id="modal-settings" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Settings</h2>
+          <button id="btn-close-settings" class="btn-icon">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="settings-content">
+          <div class="setting-group">
+            <label class="setting-label">Binaural Beat Volume</label>
+            <input type="range" id="setting-volume" min="0" max="100" value="70" class="range-input">
+            <span class="range-value" id="volume-value">70%</span>
+          </div>
+
+          <div class="setting-group">
+            <label class="toggle-label">
+              <span>Voice Output (AI speaks)</span>
+              <div class="toggle-switch">
+                <input type="checkbox" id="setting-voice-output" checked>
+                <span class="toggle-slider"></span>
+              </div>
+            </label>
+          </div>
+
+          <div class="setting-group">
+            <label class="toggle-label">
+              <span>Voice Input (You speak)</span>
+              <div class="toggle-switch">
+                <input type="checkbox" id="setting-voice-input" checked>
+                <span class="toggle-slider"></span>
+              </div>
+            </label>
+          </div>
+
+          <div class="setting-group">
+            <label class="setting-label">Carrier Frequency</label>
+            <select id="setting-carrier" class="select-input">
+              <option value="200">200 Hz (Standard)</option>
+              <option value="150">150 Hz (Lower)</option>
+              <option value="250">250 Hz (Higher)</option>
+            </select>
+          </div>
+
+          <div class="setting-group">
+            <button id="btn-clear-data" class="btn-text btn-danger">Clear All Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== MICROPHONE PERMISSION MODAL ========== -->
+    <div id="modal-mic-permission" class="modal">
+      <div class="modal-content">
+        <div class="modal-icon">
+          <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </div>
+        <h2>Enable Voice Mode?</h2>
+        <p>Voice mode allows you to speak your impressions naturally while the AI responds with voice. Your browser will ask for microphone permission.</p>
+        <div class="modal-actions">
+          <button id="btn-enable-mic" class="btn-primary">Enable Voice Mode</button>
+          <button id="btn-skip-mic" class="btn-secondary">Use Text Instead</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/voice-output.js"></script>
+  <script src="js/voice-input.js"></script>
+  <script src="js/targets.js"></script>
+  <script src="js/session.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/share.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
