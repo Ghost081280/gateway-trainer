@@ -1,7 +1,7 @@
 # Gateway Trainer
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Try it Live](https://img.shields.io/badge/Try%20it-Live%20Demo-brightgreen)](https://ghost081280.github.io/gateway-trainer)
+[![Try it Live](https://img.shields.io/badge/Try%20it-Live%20Now-brightgreen)](https://ghost081280.github.io/gateway-trainer)
 [![Based on: CIA Research](https://img.shields.io/badge/Based%20on-Declassified%20CIA%20Research-critical)](https://www.cia.gov/readingroom/collection/stargate)
 [![AI Powered](https://img.shields.io/badge/AI-Voice%20Guided-blue)](https://openai.com)
 [![Status: Active Development](https://img.shields.io/badge/Status-Active%20Development-brightgreen)]()
