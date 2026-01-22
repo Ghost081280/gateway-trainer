@@ -193,7 +193,7 @@ Based on declassified CIA documents that explored consciousness research from 19
 
 Binaural beats may cause relaxation. Do not use while driving or operating machinery. Consult a physician if you have a history of seizures.
 
-**We cannot guarantee which dimension you'll visit, only that you'll probably visit one of them. Results may vary. The CIA couldn't figure it out either.**
+**We cannot guarantee which dimension you'll visit, only that you'll probably visit one of them. Results may vary. The CIA couldn't figure it out either. So they say.**
 
 Built for explorers. Use responsibly.
 
