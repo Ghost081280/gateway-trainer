@@ -1,6 +1,7 @@
 # Gateway Trainer
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Try it Live](https://img.shields.io/badge/Try%20it-Live%20Demo-brightgreen)](https://ghost081280.github.io/gateway-trainer)
 [![Based on: CIA Research](https://img.shields.io/badge/Based%20on-Declassified%20CIA%20Research-critical)](https://www.cia.gov/readingroom/collection/stargate)
 [![AI Powered](https://img.shields.io/badge/AI-Voice%20Guided-blue)](https://openai.com)
 [![Status: Active Development](https://img.shields.io/badge/Status-Active%20Development-brightgreen)]()
@@ -166,7 +167,7 @@ The US program was largely initiated because of fear of a "psychic gap" with the
 
 | Patent | Year | Title | Status |
 |--------|------|-------|--------|
-| US 3,884,218 | 1975 | Method of Inducing and Maintaining Various Stages of Sleep | EXPIRED |
+| US 3,884,218 | 1975 | Method of Inducing and Maintaining Various Stages of Sleep | EXPIRED 1992 |
 | US 5,213,562 | 1993 | Method of Inducing Mental, Emotional and Physical States of Consciousness | EXPIRED 2013 |
 | US 5,356,368 | 1994 | Method of Inducing Desired States of Consciousness | EXPIRED 2014 |
 
