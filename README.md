@@ -104,26 +104,73 @@ Gateway Trainer uses the Monroe Institute's Focus level system:
 
 ## Historical Context
 
-### The Missing Page 25
+### The Gateway Process (1983)
 
-The Gateway Process document was declassified in 2003, but Page 25 was missing. The CIA claimed for 18 years it "never existed." In 2021, journalist Thobey Campion discovered the Monroe Institute had the complete document—they simply emailed it to him.
+The CIA commissioned **Lt. Col. Wayne McDonnell** of U.S. Army Intelligence to write "Analysis and Assessment of Gateway Process" (document **CIA-RDP96-00788R001700210016-5**). The report investigated the Monroe Institute's "Hemi-Sync" binaural beat technology and its potential for military/intelligence applications.
 
-Page 25 discussed consciousness and "the Absolute," describing how self-awareness serves as "the model around which the evolution of time-space revolves."
+**Key findings from the report:**
+- Binaural beats can synchronize brain hemispheres ("hemispheric synchronization")
+- Specific frequencies induce specific states of consciousness
+- These states could potentially be used for remote viewing, out-of-body experiences, and expanded awareness
+- The report references quantum mechanics, holographic universe theory, and consciousness as energy
+
+**The Missing Page 25**
+
+The document was declassified in 2003 but Page 25 was mysteriously missing. The CIA claimed for 18 years that Page 25 "never existed." In 2021, journalist **Thobey Campion** discovered the Monroe Institute had the complete document all along—they simply emailed it to him.
+
+Page 25 contained the continuation of McDonnell's discussion about consciousness and "the Absolute"—stating that self-consciousness "serves the Absolute as the model around which the evolution of time-space revolves to ultimately attain a reflection of and union with Him." The page then transitions to "Motivational Aspects" explaining why Gateway is faster than traditional meditation.
+
+### The Stargate Project (1972-1995)
+
+Stargate was a **$20M+** program spanning CIA, DIA, and Army Intelligence that investigated "remote viewing"—the ability to psychically perceive distant targets. The program went through multiple code names:
+
+- **SCANATE** (1972)
+- **Gondola Wish** (1977)
+- **Grill Flame** (1978)
+- **Center Lane** (1983)
+- **Sun Streak** (1985)
+- **Star Gate** (1991-1995)
+
+**Key details:**
+- Headquartered at **Fort Meade, Maryland**
+- At peak had **22+ active remote viewers**
+- Used protocols including Coordinate Remote Viewing (CRV) where viewers described targets identified only by geographic coordinates or sealed in envelopes
+- Notable viewer **Joseph McMoneagle (Remote Viewer #001)** claimed involvement in **450+ missions**
+- Statistician **Jessica Utts** found subjects scored **5-15% above chance**—statistically significant, if not operationally useful
+- Program terminated in 1995 after review concluded results were "too vague and inconsistent for actionable intelligence"
+
+**The Critical Connection:** CIA sent Stargate remote viewers to the Monroe Institute for Gateway training. Gateway was the *method* to achieve the right brain state. Stargate was the *application* of that state for intelligence gathering.
 
 ### Global Programs
 
-The US wasn't alone:
+The US wasn't alone in researching psychic phenomena for military applications:
 
-- **Soviet Union** — Spent an estimated $500M-$1B on psychotronics research
-- **China** — The 507 Research Institute studied "Human Science" until 1999
-- **UK** — Ministry of Defence conducted remote viewing tests in 2002
-- **Israel** — Uri Geller was tested at Stanford Research Institute in 1973
+**Soviet Union (1920s-2003)**  
+Spent an estimated **$500M-$1B** on "psychotronics" research. Programs were based at underground laboratories including facilities at **Odessa State University** and the **Filatov Eye Institute**. **KGB and GRU** oversaw research into telepathy, remote viewing, and "psychotronic weapons." Research was so secret that documents from the 1930s-40s remain classified today.
 
-The US program was largely initiated due to fear of a "psychic gap" with the Soviets.
+**United Kingdom (2002)**  
+The Ministry of Defence conducted remote viewing tests costing **£18,000**. Researchers recruited participants to describe contents of sealed envelopes containing images. Results showed **28% achieved "close guesses"** but the MOD concluded the technique had "little value" for defense purposes.
 
-### Program Termination
+**China (1968-1999)**  
+The **507 Research Institute** (later Beijing Aerospace Medicine Engineering Institute) studied "Human Science" under the leadership of **Qian Xuesen**—the scientist who helped develop China's atomic bomb. Research combined traditional Chinese medicine, qigong, and study of supernatural abilities. Program reportedly ended after the **1999 Falun Gong crackdown**.
 
-Stargate was shut down in 1995. The official review concluded results were "too vague and inconsistent for actionable intelligence." However, statistician Jessica Utts found subjects scored 5-15% above chance—statistically significant, if not operationally useful.
+**Israel (1970s-present)**  
+**Uri Geller** claims to have worked with Mossad after being recruited at age 13. CIA documents confirm Geller was tested at **Stanford Research Institute in 1973** as part of Stargate, with researchers concluding he "demonstrated his paranormal perceptual ability in a convincing and unambiguous manner." BBC documentary *"The Secret Life of Uri Geller"* (2013) explored his alleged intelligence work.
+
+**The Psychic Gap**  
+The US program was largely initiated because of fear of a "psychic gap" with the Soviets. A **1973 DARPA-commissioned RAND Corporation study** concluded Soviet research was more likely to achieve practical results than American efforts.
+
+### Legal Status of Binaural Beats
+
+**Robert Monroe** filed three patents related to binaural beat technology:
+
+| Patent | Year | Title | Status |
+|--------|------|-------|--------|
+| US 3,884,218 | 1975 | Method of Inducing and Maintaining Various Stages of Sleep | EXPIRED |
+| US 5,213,562 | 1993 | Method of Inducing Mental, Emotional and Physical States of Consciousness | EXPIRED 2013 |
+| US 5,356,368 | 1994 | Method of Inducing Desired States of Consciousness | EXPIRED 2014 |
+
+Binaural beats themselves were discovered in **1839** by German scientist **Heinrich Wilhelm Dove**—they are a natural auditory phenomenon that cannot be patented. Monroe only patented specific methods of application, and all those patents have expired.
 
 ---
 
@@ -155,14 +202,21 @@ Built for explorers. Use responsibly.
 ## Sources
 
 ### Primary Documents
-- [CIA Gateway Process Document](https://www.cia.gov/readingroom/docs/CIA-RDP96-00788R001700210016-5.pdf)
-- [CIA Stargate Collection](https://www.cia.gov/readingroom/collection/stargate)
+- [CIA Gateway Process Document (CIA-RDP96-00788R001700210016-5)](https://www.cia.gov/readingroom/docs/CIA-RDP96-00788R001700210016-5.pdf)
 - [Complete Gateway Document with Page 25](https://archive.org/details/cia-gateway)
+- [CIA FOIA Stargate Collection](https://www.cia.gov/readingroom/collection/stargate)
+- [Coordinate Remote Viewing (CRV) Manual](https://www.cia.gov/readingroom/docs/CIA-RDP96-00788R001000400001-7.pdf)
 
 ### Further Reading
 - Monroe, Robert. *Journeys Out of the Body* (1971)
+- Monroe, Robert. *Far Journeys* (1985)
 - McMoneagle, Joseph. *Remote Viewing Secrets* (2000)
 - Schnabel, Jim. *Remote Viewers: The Secret History of America's Psychic Spies* (1997)
+- Targ, Russell & Puthoff, Harold. *Mind-Reach: Scientists Look at Psychic Abilities* (1977)
+
+### Media
+- BBC Documentary: *"The Secret Life of Uri Geller"* (2013)
+- Vice: *"The CIA's Gateway Process Explained"*
 
 ---
 
