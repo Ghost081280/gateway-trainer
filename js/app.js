@@ -9,6 +9,9 @@ class GatewayApp {
     this.isAISpeaking = false;
     this.sessionResult = null;
     
+    // Button state tracking to prevent double-clicks
+    this.buttonStates = {};
+    
     // Training setup state
     this.trainingSetup = {
       duration: CONFIG.DEFAULTS.trainingDuration,
@@ -37,6 +40,49 @@ class GatewayApp {
     this.setupVoiceCallbacks();
     
     console.log('Gateway Trainer initialized');
+  }
+  
+  // Set button loading state
+  setButtonLoading(buttonId, isLoading) {
+    const button = document.getElementById(buttonId);
+    if (!button) return;
+    
+    this.buttonStates[buttonId] = isLoading;
+    
+    if (isLoading) {
+      button.disabled = true;
+      button.dataset.originalText = button.innerHTML;
+      button.innerHTML = '<span class="loading-spinner"></span> Processing...';
+      button.classList.add('btn-loading');
+    } else {
+      button.disabled = false;
+      if (button.dataset.originalText) {
+        button.innerHTML = button.dataset.originalText;
+      }
+      button.classList.remove('btn-loading');
+    }
+  }
+  
+  // Check if button is in loading state
+  isButtonLoading(buttonId) {
+    return this.buttonStates[buttonId] === true;
+  }
+  
+  // Wrap async button handler with loading state
+  async handleButtonClick(buttonId, asyncFn) {
+    if (this.isButtonLoading(buttonId)) {
+      console.log('Button already processing:', buttonId);
+      return;
+    }
+    
+    this.setButtonLoading(buttonId, true);
+    try {
+      await asyncFn();
+    } catch (error) {
+      console.error('Button action error:', error);
+    } finally {
+      this.setButtonLoading(buttonId, false);
+    }
   }
   
   // Bind all event listeners
@@ -74,11 +120,20 @@ class GatewayApp {
     });
     
     // Focus cards for exploration
-    document.querySelectorAll('.focus-card').forEach(card => {
+    document.querySelectorAll('#screen-exploration-setup .focus-card').forEach(card => {
       card.addEventListener('click', () => {
-        document.querySelectorAll('.focus-card').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('#screen-exploration-setup .focus-card').forEach(c => c.classList.remove('active'));
         card.classList.add('active');
         this.explorationSetup.focus = parseInt(card.dataset.value);
+      });
+    });
+    
+    // Focus cards for quick session
+    document.querySelectorAll('#screen-quick-setup .focus-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('#screen-quick-setup .focus-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        this.quickSetup.focus = parseInt(card.dataset.value);
       });
     });
     
@@ -90,22 +145,36 @@ class GatewayApp {
       });
     }
     
-    // Start buttons
-    document.getElementById('btn-start-training')?.addEventListener('click', () => this.startTraining());
-    document.getElementById('btn-start-exploration')?.addEventListener('click', () => this.startExploration());
-    document.getElementById('btn-start-quick')?.addEventListener('click', () => this.startQuick());
+    // Start buttons with loading states
+    document.getElementById('btn-start-training')?.addEventListener('click', () => {
+      this.handleButtonClick('btn-start-training', () => this.startTraining());
+    });
+    document.getElementById('btn-start-exploration')?.addEventListener('click', () => {
+      this.handleButtonClick('btn-start-exploration', () => this.startExploration());
+    });
+    document.getElementById('btn-start-quick')?.addEventListener('click', () => {
+      this.handleButtonClick('btn-start-quick', () => this.startQuick());
+    });
     
     // Training session controls
-    document.getElementById('btn-reveal')?.addEventListener('click', () => this.revealTarget());
-    document.getElementById('btn-end-session')?.addEventListener('click', () => this.endSession());
+    document.getElementById('btn-reveal')?.addEventListener('click', () => {
+      this.handleButtonClick('btn-reveal', () => this.revealTarget());
+    });
+    document.getElementById('btn-end-session')?.addEventListener('click', () => {
+      this.handleButtonClick('btn-end-session', () => this.endSession());
+    });
     document.getElementById('btn-send-impression')?.addEventListener('click', () => this.sendTextImpression());
     document.getElementById('impression-input')?.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') this.sendTextImpression();
     });
     
     // Reveal screen controls
-    document.getElementById('btn-next-target')?.addEventListener('click', () => this.nextTarget());
-    document.getElementById('btn-end-from-reveal')?.addEventListener('click', () => this.endSession());
+    document.getElementById('btn-next-target')?.addEventListener('click', () => {
+      this.handleButtonClick('btn-next-target', () => this.nextTarget());
+    });
+    document.getElementById('btn-end-from-reveal')?.addEventListener('click', () => {
+      this.handleButtonClick('btn-end-from-reveal', () => this.endSession());
+    });
     
     // Summary screen controls
     document.getElementById('btn-share')?.addEventListener('click', () => this.shareResults());
@@ -121,7 +190,9 @@ class GatewayApp {
     document.getElementById('btn-quick-stop')?.addEventListener('click', () => this.endQuick());
     
     // Journal controls
-    document.getElementById('btn-save-journal')?.addEventListener('click', () => this.saveJournal());
+    document.getElementById('btn-save-journal')?.addEventListener('click', () => {
+      this.handleButtonClick('btn-save-journal', () => this.saveJournal());
+    });
     document.getElementById('btn-skip-journal')?.addEventListener('click', () => this.showScreen('landing'));
     
     // Settings
@@ -158,6 +229,10 @@ class GatewayApp {
     });
     document.getElementById('btn-headphones-cancel')?.addEventListener('click', () => {
       this.hideModal('headphones');
+      // Reset button states
+      this.setButtonLoading('btn-start-training', false);
+      this.setButtonLoading('btn-start-exploration', false);
+      this.setButtonLoading('btn-start-quick', false);
     });
     
     // Mic permission modal
@@ -181,7 +256,7 @@ class GatewayApp {
     voiceOutput.onSpeakingEnd = () => {
       this.isAISpeaking = false;
       this.updateListeningStatus();
-      if (this.voiceModeEnabled) {
+      if (this.voiceModeEnabled && this.currentScreen === 'training-session') {
         voiceInput.resume();
       }
     };
@@ -344,8 +419,10 @@ class GatewayApp {
     
     // After opening, prompt for impressions
     setTimeout(async () => {
-      const prompt = await aiGuide.promptForTarget();
-      this.setMonitorText(prompt);
+      if (this.currentScreen === 'training-session') {
+        const prompt = await aiGuide.promptForTarget();
+        this.setMonitorText(prompt);
+      }
     }, 3000);
   }
   
@@ -362,6 +439,9 @@ class GatewayApp {
     document.getElementById('exploration-focus-level').textContent = focus;
     const focusConfig = CONFIG.FOCUS_LEVELS[focus];
     document.getElementById('exploration-frequency').textContent = `${focusConfig.beatFreq} Hz`;
+    
+    // Update pause button to show pause icon
+    this.updateExplorationPauseButton(false);
     
     // Start timer
     sessionManager.startTimer(duration,
@@ -389,6 +469,9 @@ class GatewayApp {
     
     // Update UI
     document.getElementById('quick-focus-level').textContent = focus;
+    
+    // Update pause button to show pause icon
+    this.updateQuickPauseButton(false);
     
     // Start timer
     sessionManager.startTimer(duration,
@@ -520,6 +603,9 @@ class GatewayApp {
     // Stop voice input during reveal
     voiceInput.pause();
     
+    // Stop any current speech before scoring
+    voiceOutput.stopCurrentSpeech();
+    
     // Get scoring from AI
     const result = await aiGuide.scoreAndReveal();
     const target = sessionManager.getCurrentTarget();
@@ -559,9 +645,12 @@ class GatewayApp {
   // Next target
   async nextTarget() {
     if (!sessionManager.hasMoreTargets()) {
-      this.endSession();
+      await this.endSession();
       return;
     }
+    
+    // Stop any current speech
+    voiceOutput.stopCurrentSpeech();
     
     // Clear impressions list
     document.getElementById('impressions-list').innerHTML = '';
@@ -588,8 +677,15 @@ class GatewayApp {
   
   // End training session
   async endSession() {
+    // CRITICAL: Stop all audio/speech first
+    voiceOutput.stopCurrentSpeech();
     voiceInput.stopSession();
     binauralBeats.stop();
+    
+    // Small delay to ensure cleanup
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Play chime
     binauralBeats.playChime();
     
     this.sessionResult = sessionManager.endTrainingSession();
@@ -605,7 +701,7 @@ class GatewayApp {
     document.getElementById('summary-best').textContent = `${this.sessionResult.bestScore}%`;
     document.getElementById('summary-streak').textContent = this.sessionResult.streak;
     
-    // Get AI summary
+    // Get AI summary (this will speak it)
     const summary = await aiGuide.sessionSummary(this.sessionResult);
     document.getElementById('summary-feedback').textContent = summary;
     
@@ -616,8 +712,38 @@ class GatewayApp {
     this.updateUserStats();
   }
   
+  // Update exploration pause button icon
+  updateExplorationPauseButton(isPaused) {
+    const btn = document.getElementById('btn-exploration-pause');
+    if (!btn) return;
+    
+    if (isPaused) {
+      btn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+      `;
+    } else {
+      btn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="6" y="4" width="4" height="16"/>
+          <rect x="14" y="4" width="4" height="16"/>
+        </svg>
+      `;
+    }
+  }
+  
+  // Toggle exploration pause
+  toggleExplorationPause() {
+    const isPaused = binauralBeats.togglePause();
+    this.updateExplorationPauseButton(isPaused);
+  }
+  
   // End exploration
   endExploration() {
+    // Stop any speech first
+    voiceOutput.stopCurrentSpeech();
+    
     binauralBeats.stop();
     binauralBeats.playChime();
     sessionManager.endExplorationSession();
@@ -642,13 +768,31 @@ class GatewayApp {
     this.updateUserStats();
   }
   
-  // Toggle exploration pause
-  toggleExplorationPause() {
-    if (binauralBeats.getIsPlaying()) {
-      binauralBeats.pause();
+  // Update quick pause button icon
+  updateQuickPauseButton(isPaused) {
+    const btn = document.getElementById('btn-quick-pause');
+    if (!btn) return;
+    
+    if (isPaused) {
+      btn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="5 3 19 12 5 21 5 3"/>
+        </svg>
+      `;
     } else {
-      binauralBeats.resume();
+      btn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="6" y="4" width="4" height="16"/>
+          <rect x="14" y="4" width="4" height="16"/>
+        </svg>
+      `;
     }
+  }
+  
+  // Toggle quick pause
+  toggleQuickPause() {
+    const isPaused = binauralBeats.togglePause();
+    this.updateQuickPauseButton(isPaused);
   }
   
   // End quick session
@@ -656,19 +800,6 @@ class GatewayApp {
     binauralBeats.stop();
     sessionManager.endQuickSession();
     this.showScreen('landing');
-  }
-  
-  // Toggle quick pause
-  toggleQuickPause() {
-    const icon = document.getElementById('quick-pause-icon');
-    
-    if (binauralBeats.getIsPlaying()) {
-      binauralBeats.pause();
-      icon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
-    } else {
-      binauralBeats.resume();
-      icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
-    }
   }
   
   // Share results
@@ -714,11 +845,15 @@ class GatewayApp {
     }
     
     // Voice toggles
-    document.getElementById('setting-voice-output').checked = prefs.voiceOutput;
-    document.getElementById('setting-voice-input').checked = prefs.voiceInput;
+    const voiceOutputToggle = document.getElementById('setting-voice-output');
+    if (voiceOutputToggle) voiceOutputToggle.checked = prefs.voiceOutput;
+    
+    const voiceInputToggle = document.getElementById('setting-voice-input');
+    if (voiceInputToggle) voiceInputToggle.checked = prefs.voiceInput;
     
     // Carrier frequency
-    document.getElementById('setting-carrier').value = prefs.carrier;
+    const carrierSelect = document.getElementById('setting-carrier');
+    if (carrierSelect) carrierSelect.value = prefs.carrier;
   }
   
   // Show screen
