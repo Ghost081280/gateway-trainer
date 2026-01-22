@@ -12,7 +12,9 @@ class BinauralBeatGenerator {
     this.rightGain = null;
     this.masterGain = null;
     this.isPlaying = false;
+    this.isPaused = false;
     this.currentFocusLevel = null;
+    this.savedVolume = CONFIG.AUDIO.defaultVolume;
     
     // Pink noise for comfort layer (optional)
     this.noiseNode = null;
@@ -73,6 +75,7 @@ class BinauralBeatGenerator {
     }
     
     this.currentFocusLevel = focusLevel;
+    this.isPaused = false;
     
     const carrierFreq = CONFIG.AUDIO.carrierFrequency;
     const beatFreq = focusConfig.beatFreq;
@@ -118,7 +121,7 @@ class BinauralBeatGenerator {
     
     this.isPlaying = true;
     
-    console.log(`Binaural beats started: Focus ${focusLevel} (${beatFreq} Hz beat)`);
+    console.log(`Binaural beats started: Focus ${focusLevel} (${beatFreq} Hz beat) - Left: ${leftFreq}Hz, Right: ${rightFreq}Hz`);
   }
   
   // Stop binaural beats
@@ -135,38 +138,83 @@ class BinauralBeatGenerator {
     }
     
     // Stop oscillators after fade
+    const leftOsc = this.leftOscillator;
+    const rightOsc = this.rightOscillator;
+    
     setTimeout(() => {
-      if (this.leftOscillator) {
-        this.leftOscillator.stop();
-        this.leftOscillator.disconnect();
-        this.leftOscillator = null;
+      if (leftOsc) {
+        try {
+          leftOsc.stop();
+          leftOsc.disconnect();
+        } catch (e) {
+          // Already stopped
+        }
       }
-      if (this.rightOscillator) {
-        this.rightOscillator.stop();
-        this.rightOscillator.disconnect();
-        this.rightOscillator = null;
+      if (rightOsc) {
+        try {
+          rightOsc.stop();
+          rightOsc.disconnect();
+        } catch (e) {
+          // Already stopped
+        }
       }
     }, fadeTime * 1000);
     
+    this.leftOscillator = null;
+    this.rightOscillator = null;
     this.isPlaying = false;
+    this.isPaused = false;
     this.currentFocusLevel = null;
     
     console.log('Binaural beats stopped');
   }
   
-  // Pause playback
+  // Pause playback - mute but keep oscillators running
   pause() {
-    if (this.audioContext && this.audioContext.state === 'running') {
-      this.audioContext.suspend();
-      console.log('Audio paused');
+    if (!this.isPlaying || this.isPaused) return;
+    
+    this.isPaused = true;
+    
+    // Fade out quickly instead of suspending context
+    if (this.leftGain && this.rightGain) {
+      const currentTime = this.audioContext.currentTime;
+      this.leftGain.gain.linearRampToValueAtTime(0, currentTime + 0.1);
+      this.rightGain.gain.linearRampToValueAtTime(0, currentTime + 0.1);
     }
+    
+    console.log('Audio paused (muted)');
   }
   
-  // Resume playback
+  // Resume playback - unmute
   resume() {
-    if (this.audioContext && this.audioContext.state === 'suspended') {
+    if (!this.isPlaying || !this.isPaused) return;
+    
+    this.isPaused = false;
+    
+    // Make sure context is running
+    if (this.audioContext.state === 'suspended') {
       this.audioContext.resume();
-      console.log('Audio resumed');
+    }
+    
+    // Fade back in
+    if (this.leftGain && this.rightGain) {
+      const currentTime = this.audioContext.currentTime;
+      const targetVolume = 0.5;
+      this.leftGain.gain.linearRampToValueAtTime(targetVolume, currentTime + 0.3);
+      this.rightGain.gain.linearRampToValueAtTime(targetVolume, currentTime + 0.3);
+    }
+    
+    console.log('Audio resumed (unmuted)');
+  }
+  
+  // Toggle pause/resume
+  togglePause() {
+    if (this.isPaused) {
+      this.resume();
+      return false; // Not paused anymore
+    } else {
+      this.pause();
+      return true; // Now paused
     }
   }
   
@@ -202,9 +250,10 @@ class BinauralBeatGenerator {
   
   // Set master volume (0-1)
   setVolume(volume) {
+    this.savedVolume = Math.max(0, Math.min(1, volume));
     if (this.masterGain) {
       this.masterGain.gain.linearRampToValueAtTime(
-        Math.max(0, Math.min(1, volume)),
+        this.savedVolume,
         this.audioContext.currentTime + 0.1
       );
     }
@@ -212,13 +261,14 @@ class BinauralBeatGenerator {
   
   // Get current volume
   getVolume() {
-    return this.masterGain ? this.masterGain.gain.value : CONFIG.AUDIO.defaultVolume;
+    return this.savedVolume;
   }
   
   // Set carrier frequency
   setCarrierFrequency(frequency) {
-    if (!this.isPlaying) {
-      CONFIG.AUDIO.carrierFrequency = frequency;
+    CONFIG.AUDIO.carrierFrequency = frequency;
+    
+    if (!this.isPlaying || !this.leftOscillator || !this.rightOscillator) {
       return;
     }
     
@@ -235,9 +285,14 @@ class BinauralBeatGenerator {
     );
   }
   
-  // Check if currently playing
+  // Check if currently playing (and not paused)
   getIsPlaying() {
-    return this.isPlaying;
+    return this.isPlaying && !this.isPaused;
+  }
+  
+  // Check if paused
+  getIsPaused() {
+    return this.isPaused;
   }
   
   // Get current focus level
@@ -246,8 +301,15 @@ class BinauralBeatGenerator {
   }
   
   // Play a simple chime/bell sound (for session end)
-  playChime() {
-    if (!this.audioContext) return;
+  async playChime() {
+    if (!this.audioContext) {
+      await this.init();
+    }
+    
+    // Make sure context is running
+    if (this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
     
     const oscillator = this.audioContext.createOscillator();
     const gainNode = this.audioContext.createGain();
@@ -262,7 +324,7 @@ class BinauralBeatGenerator {
     );
     
     oscillator.connect(gainNode);
-    gainNode.connect(this.masterGain);
+    gainNode.connect(this.audioContext.destination); // Direct to destination, not through master
     
     oscillator.start();
     oscillator.stop(this.audioContext.currentTime + 2);
