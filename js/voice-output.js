@@ -1,78 +1,103 @@
 // Gateway Trainer - Voice Output (TTS)
 // =====================================
 // Calls Cloudflare Worker which proxies to OpenAI TTS API
-// Uses "spruce" voice for calm, meditative guidance
+// Uses Web Audio API for better mobile compatibility
 
 class VoiceOutput {
   constructor() {
     this.audioQueue = [];
     this.isPlaying = false;
-    this.currentAudio = null;
+    this.currentSource = null;
+    this.audioContext = null;
+    this.gainNode = null;
     this.enabled = true;
     this.onSpeakingStart = null;
     this.onSpeakingEnd = null;
     
-    // Mobile audio unlock state
+    // Track unlock state
     this.audioUnlocked = false;
-    this.audioContext = null;
     
-    // Bind the unlock method so we can remove the listener later
+    // Bind methods
     this._unlockAudio = this._unlockAudio.bind(this);
     
-    // Setup mobile audio unlock on first user interaction
+    // Setup mobile audio unlock
     this._setupMobileUnlock();
+  }
+  
+  // Initialize Web Audio API context
+  async _initAudioContext() {
+    if (this.audioContext) return true;
+    
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) {
+        console.error('Web Audio API not supported');
+        return false;
+      }
+      
+      this.audioContext = new AudioContext();
+      
+      // Create gain node for volume control
+      this.gainNode = this.audioContext.createGain();
+      this.gainNode.connect(this.audioContext.destination);
+      
+      console.log('Audio context initialized, state:', this.audioContext.state);
+      return true;
+    } catch (error) {
+      console.error('Failed to init audio context:', error);
+      return false;
+    }
   }
   
   // Setup listeners to unlock audio on mobile
   _setupMobileUnlock() {
     const events = ['touchstart', 'touchend', 'click', 'keydown'];
+    const handler = () => this._unlockAudio();
     events.forEach(event => {
-      document.addEventListener(event, this._unlockAudio, { once: false, passive: true });
+      document.addEventListener(event, handler, { once: false, passive: true });
     });
+    
+    // Store for cleanup
+    this._unlockHandler = handler;
+    this._unlockEvents = events;
   }
   
   // Unlock audio context for mobile browsers
   async _unlockAudio() {
-    if (this.audioUnlocked) return;
+    if (this.audioUnlocked) return true;
     
     try {
-      // Create AudioContext if needed (for iOS Safari)
-      if (!this.audioContext) {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        if (AudioContext) {
-          this.audioContext = new AudioContext();
-        }
-      }
+      await this._initAudioContext();
       
-      // Resume audio context if suspended
-      if (this.audioContext && this.audioContext.state === 'suspended') {
+      if (!this.audioContext) return false;
+      
+      // Resume if suspended
+      if (this.audioContext.state === 'suspended') {
         await this.audioContext.resume();
+        console.log('Audio context resumed');
       }
       
-      // Create and play a silent audio to unlock
-      const silentAudio = new Audio();
-      silentAudio.src = 'data:audio/mp3;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4Ljc2LjEwMAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAABhgC7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7//////////////////////////////////////////////////////////////////8AAAAATGF2YzU4LjEzAAAAAAAAAAAAAAAAJAAAAAAAAAAAAYYoRwmHAAAAAAD/+xBkAA/wAABpAAAACAAADSAAAAEAAAGkAAAAIAAANIAAAARMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQ==';
-      silentAudio.volume = 0.01;
-      
-      const playPromise = silentAudio.play();
-      if (playPromise !== undefined) {
-        await playPromise;
-        silentAudio.pause();
-        silentAudio.remove();
-      }
+      // Play a short silent buffer to fully unlock
+      const buffer = this.audioContext.createBuffer(1, 1, 22050);
+      const source = this.audioContext.createBufferSource();
+      source.buffer = buffer;
+      source.connect(this.audioContext.destination);
+      source.start(0);
       
       this.audioUnlocked = true;
-      console.log('Audio unlocked for mobile playback');
+      console.log('Audio unlocked successfully, context state:', this.audioContext.state);
       
-      // Remove listeners once unlocked
-      const events = ['touchstart', 'touchend', 'click', 'keydown'];
-      events.forEach(event => {
-        document.removeEventListener(event, this._unlockAudio);
-      });
+      // Remove listeners
+      if (this._unlockHandler && this._unlockEvents) {
+        this._unlockEvents.forEach(event => {
+          document.removeEventListener(event, this._unlockHandler);
+        });
+      }
       
+      return true;
     } catch (error) {
-      // Silent fail - will try again on next interaction
-      console.log('Audio unlock pending...');
+      console.warn('Audio unlock failed:', error);
+      return false;
     }
   }
   
@@ -87,9 +112,13 @@ class VoiceOutput {
       return;
     }
     
-    // Ensure audio is unlocked on mobile
-    if (!this.audioUnlocked) {
-      await this._unlockAudio();
+    console.log('TTS request for:', text.substring(0, 50) + '...');
+    
+    // Ensure audio is ready
+    const unlocked = await this._unlockAudio();
+    if (!unlocked) {
+      console.error('Could not unlock audio');
+      return;
     }
     
     try {
@@ -97,6 +126,8 @@ class VoiceOutput {
       if (this.onSpeakingStart) {
         this.onSpeakingStart();
       }
+      
+      console.log('Fetching TTS from:', CONFIG.WORKER_URL + '/speech');
       
       const response = await fetch(`${CONFIG.WORKER_URL}/speech`, {
         method: 'POST',
@@ -107,82 +138,84 @@ class VoiceOutput {
         })
       });
       
+      console.log('TTS response status:', response.status);
+      console.log('TTS response type:', response.headers.get('content-type'));
+      
       if (!response.ok) {
-        console.warn('Voice output unavailable:', response.status);
+        const errorText = await response.text();
+        console.error('TTS API error:', response.status, errorText);
         if (this.onSpeakingEnd) {
           this.onSpeakingEnd();
         }
         return;
       }
       
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
+      // Get the audio data as ArrayBuffer
+      const arrayBuffer = await response.arrayBuffer();
+      console.log('Received audio data, size:', arrayBuffer.byteLength, 'bytes');
+      
+      if (arrayBuffer.byteLength === 0) {
+        console.error('Received empty audio data');
+        if (this.onSpeakingEnd) {
+          this.onSpeakingEnd();
+        }
+        return;
+      }
+      
+      // Make sure context is running
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
+      
+      // Decode the audio data
+      console.log('Decoding audio...');
+      
+      let audioBuffer;
+      try {
+        audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer.slice(0));
+        console.log('Audio decoded successfully, duration:', audioBuffer.duration, 'seconds');
+      } catch (decodeError) {
+        console.error('Failed to decode audio:', decodeError);
+        // Try alternative: use HTML5 Audio as fallback
+        console.log('Attempting HTML5 Audio fallback...');
+        await this._playWithHtmlAudio(arrayBuffer);
+        return;
+      }
+      
+      // Lower binaural beat volume while speaking
+      const originalVolume = binauralBeats.getVolume();
+      binauralBeats.setVolume(originalVolume * 0.3);
       
       return new Promise((resolve) => {
-        this.currentAudio = new Audio();
+        // Create buffer source
+        this.currentSource = this.audioContext.createBufferSource();
+        this.currentSource.buffer = audioBuffer;
+        this.currentSource.connect(this.gainNode);
         
-        // Set properties before setting src (important for mobile)
-        this.currentAudio.preload = 'auto';
-        this.currentAudio.playsinline = true;
-        this.currentAudio.setAttribute('playsinline', '');
-        this.currentAudio.setAttribute('webkit-playsinline', '');
+        this.isPlaying = true;
         
-        // Store original volume for restoration
-        const originalVolume = binauralBeats.getVolume();
-        
-        // Setup event handlers before setting src
-        this.currentAudio.oncanplaythrough = () => {
-          // Lower binaural beat volume while speaking
-          binauralBeats.setVolume(originalVolume * 0.3);
-          this.isPlaying = true;
+        this.currentSource.onended = () => {
+          console.log('TTS playback completed');
+          this.currentSource = null;
+          this.isPlaying = false;
           
-          // Play with promise handling for mobile
-          const playPromise = this.currentAudio.play();
+          // Restore binaural beat volume
+          binauralBeats.setVolume(originalVolume);
           
-          if (playPromise !== undefined) {
-            playPromise
-              .then(() => {
-                console.log('Audio playback started');
-              })
-              .catch((error) => {
-                console.warn('Audio play failed:', error);
-                this._handlePlaybackError(originalVolume, audioUrl, resolve);
-              });
+          if (this.onSpeakingEnd) {
+            this.onSpeakingEnd();
           }
+          
+          resolve();
         };
         
-        this.currentAudio.onended = () => {
-          this._cleanupAudio(originalVolume, audioUrl, resolve);
-        };
-        
-        this.currentAudio.onerror = (error) => {
-          console.warn('Audio error:', error);
-          this._handlePlaybackError(originalVolume, audioUrl, resolve);
-        };
-        
-        // Handle stalled/stuck audio (common on mobile)
-        this.currentAudio.onstalled = () => {
-          console.warn('Audio stalled, attempting recovery...');
-        };
-        
-        // Set source last (after all handlers are attached)
-        this.currentAudio.src = audioUrl;
-        this.currentAudio.load();
-        
-        // Fallback timeout in case audio never plays (mobile issue)
-        setTimeout(() => {
-          if (this.isPlaying && this.currentAudio) {
-            // Check if audio is actually progressing
-            if (this.currentAudio.currentTime === 0 && !this.currentAudio.paused) {
-              console.warn('Audio not progressing, forcing cleanup');
-              this._handlePlaybackError(originalVolume, audioUrl, resolve);
-            }
-          }
-        }, 10000); // 10 second timeout
+        // Start playback
+        console.log('Starting TTS playback...');
+        this.currentSource.start(0);
       });
       
     } catch (error) {
-      console.warn('Voice output error:', error);
+      console.error('Voice output error:', error);
       
       if (this.onSpeakingEnd) {
         this.onSpeakingEnd();
@@ -190,35 +223,63 @@ class VoiceOutput {
     }
   }
   
-  // Clean up after successful playback
-  _cleanupAudio(originalVolume, audioUrl, resolve) {
-    URL.revokeObjectURL(audioUrl);
-    this.currentAudio = null;
-    this.isPlaying = false;
+  // Fallback: Play using HTML5 Audio element
+  async _playWithHtmlAudio(arrayBuffer) {
+    console.log('Using HTML5 Audio fallback');
     
-    // Restore binaural beat volume
-    binauralBeats.setVolume(originalVolume);
+    const originalVolume = binauralBeats.getVolume();
+    binauralBeats.setVolume(originalVolume * 0.3);
     
-    if (this.onSpeakingEnd) {
-      this.onSpeakingEnd();
-    }
-    
-    resolve();
+    return new Promise((resolve) => {
+      try {
+        // Create blob from array buffer
+        const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+        const url = URL.createObjectURL(blob);
+        
+        const audio = new Audio();
+        audio.preload = 'auto';
+        audio.setAttribute('playsinline', '');
+        audio.setAttribute('webkit-playsinline', '');
+        
+        audio.oncanplaythrough = () => {
+          console.log('HTML5 Audio ready, playing...');
+          audio.play().catch(e => {
+            console.error('HTML5 Audio play failed:', e);
+            this._cleanup(originalVolume, url, resolve);
+          });
+        };
+        
+        audio.onended = () => {
+          console.log('HTML5 Audio playback completed');
+          this._cleanup(originalVolume, url, resolve);
+        };
+        
+        audio.onerror = (e) => {
+          console.error('HTML5 Audio error:', e);
+          this._cleanup(originalVolume, url, resolve);
+        };
+        
+        this.isPlaying = true;
+        audio.src = url;
+        audio.load();
+        
+      } catch (error) {
+        console.error('HTML5 Audio fallback failed:', error);
+        this._cleanup(originalVolume, null, resolve);
+      }
+    });
   }
   
-  // Handle playback errors
-  _handlePlaybackError(originalVolume, audioUrl, resolve) {
-    URL.revokeObjectURL(audioUrl);
-    this.currentAudio = null;
+  // Cleanup helper
+  _cleanup(originalVolume, url, resolve) {
+    if (url) {
+      URL.revokeObjectURL(url);
+    }
     this.isPlaying = false;
-    
-    // Restore binaural beat volume
     binauralBeats.setVolume(originalVolume);
-    
     if (this.onSpeakingEnd) {
       this.onSpeakingEnd();
     }
-    
     resolve();
   }
   
@@ -226,22 +287,24 @@ class VoiceOutput {
   async speakQueue(texts) {
     for (const text of texts) {
       await this.speak(text);
-      // Small pause between phrases
       await this.delay(300);
     }
   }
   
   // Stop current playback
   stop() {
-    if (this.currentAudio) {
-      this.currentAudio.pause();
-      this.currentAudio.src = '';
-      this.currentAudio = null;
-      this.isPlaying = false;
-      
-      if (this.onSpeakingEnd) {
-        this.onSpeakingEnd();
+    if (this.currentSource) {
+      try {
+        this.currentSource.stop();
+      } catch (e) {
+        // Already stopped
       }
+      this.currentSource = null;
+    }
+    this.isPlaying = false;
+    
+    if (this.onSpeakingEnd) {
+      this.onSpeakingEnd();
     }
   }
   
@@ -263,15 +326,20 @@ class VoiceOutput {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
   
-  // Check if audio is likely to work (for UI feedback)
-  isAudioSupported() {
-    return !!(window.Audio && (window.AudioContext || window.webkitAudioContext));
-  }
-  
   // Manual unlock trigger (can be called from a button if needed)
   async manualUnlock() {
-    await this._unlockAudio();
-    return this.audioUnlocked;
+    return await this._unlockAudio();
+  }
+  
+  // Get diagnostic info
+  getDiagnostics() {
+    return {
+      audioUnlocked: this.audioUnlocked,
+      contextState: this.audioContext ? this.audioContext.state : 'no context',
+      isPlaying: this.isPlaying,
+      enabled: this.enabled,
+      premiumVoice: CONFIG.PREMIUM.voiceOutput
+    };
   }
 }
 
