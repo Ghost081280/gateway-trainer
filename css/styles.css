@@ -1358,6 +1358,64 @@ button:disabled {
   font-size: 0.875rem;
 }
 
+/* Journals Modal */
+.modal-journals-content {
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.journals-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 400px;
+  text-align: left;
+}
+
+.no-journals {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  text-align: center;
+  padding: var(--spacing-xl);
+}
+
+.journal-entry-card {
+  background: var(--bg-dark);
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.journal-entry-card:last-child {
+  margin-bottom: 0;
+}
+
+.journal-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.journal-entry-date {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.journal-entry-focus {
+  color: var(--accent-green);
+}
+
+.journal-entry-text {
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
 /* =============================================
    ICONS
    ============================================= */
