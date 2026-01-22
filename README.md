@@ -7,7 +7,7 @@
 
 **The first AI-powered, voice-guided remote viewing trainer based on declassified CIA protocols.**
 
-Train your consciousness using the same techniques explored in the CIA's Gateway Process and Stargate Project. Features real-time binaural beat generation and an AI guide that speaks to you through your session - just like the human monitors did at Fort Meade.
+Train your consciousness using the same techniques explored in the CIA's Gateway Process and Stargate Project. Features real-time binaural beat generation and an AI guide that speaks to you through your session—just like the human monitors did at Fort Meade.
 
 ---
 
@@ -193,7 +193,7 @@ Based on declassified CIA documents that explored consciousness research from 19
 
 Binaural beats may cause relaxation. Do not use while driving or operating machinery. Consult a physician if you have a history of seizures.
 
-**We cannot guarantee which dimension you'll visit, only that you'll probably visit one of them. Results may vary. The CIA couldn't figure it out either. So they say.**
+**We cannot guarantee which dimension you'll visit, only that you'll probably visit one of them. Results may vary. The CIA couldn't figure it out either.**
 
 Built for explorers. Use responsibly.
 
